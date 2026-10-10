@@ -1,0 +1,37 @@
+{
+  "name": "BLOXSTRIKE",
+  "tree": {
+    "$className": "DataModel",
+
+    "ReplicatedStorage": {
+      "$className": "ReplicatedStorage",
+      "ShooterConfig": {
+        "$path": "src/ReplicatedStorage/ShooterConfig.lua"
+      }
+    },
+
+    "ServerScriptService": {
+      "$className": "ServerScriptService",
+      "ShooterServer": {
+        "$path": "src/ServerScriptService/ShooterServer.server.lua"
+      }
+    },
+
+    "StarterPlayer": {
+      "$className": "StarterPlayer",
+      "StarterPlayerScripts": {
+        "$className": "StarterPlayerScripts",
+        "ShooterClient": {
+          "$path": "src/StarterPlayerScripts/ShooterClient.client.lua"
+        }
+      }
+    },
+
+    "Lighting": {
+      "$className": "Lighting"
+    },
+    "Workspace": {
+      "$className": "Workspace"
+    }
+  }
+}

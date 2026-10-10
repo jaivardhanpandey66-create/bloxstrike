@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BLOXSTRIKE: Neon Arena</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- ===================== LOGIN / REGISTER ===================== -->
+  <div id="auth-screen" class="screen">
+    <div class="auth-card">
+      <h1 class="logo">BLOX<span>STRIKE</span></h1>
+      <p class="tagline">Neon Arena &middot; login required to play</p>
+
+      <div class="tabs">
+        <button id="tab-login" class="tab active" type="button">Login</button>
+        <button id="tab-register" class="tab" type="button">Register</button>
+      </div>
+
+      <form id="auth-form" autocomplete="off">
+        <label>
+          <span>Username</span>
+          <input id="username" type="text" maxlength="16" required
+                 placeholder="e.g. NeonStriker" />
+        </label>
+        <label>
+          <span>Password</span>
+          <input id="password" type="password" maxlength="32" required
+                 placeholder="••••••••" />
+        </label>
+        <button id="auth-submit" class="primary" type="submit">Login</button>
+      </form>
+
+      <p id="auth-msg" class="msg"></p>
+      <p class="hint">
+        Accounts are saved locally in this browser (demo auth, not server-side).
+      </p>
+    </div>
+  </div>
+
+  <!-- ===================== GAME ===================== -->
+  <div id="game-screen" class="screen hidden">
+    <canvas id="game"></canvas>
+
+    <div id="hud">
+      <div class="hud-top">
+        <div id="user-badge">Player: <strong id="hud-user">-</strong></div>
+        <div id="wave-badge">Wave <strong id="hud-wave">1</strong></div>
+        <div id="score-badge">Score <strong id="hud-score">0</strong></div>
+        <div id="best-badge">Best <strong id="hud-best">0</strong></div>
+        <button id="logout-btn" type="button">Logout</button>
+      </div>
+
+      <div class="hud-bottom">
+        <div class="bar health-bar">
+          <div id="health-fill"></div>
+          <span id="health-text">100</span>
+        </div>
+        <div class="ammo">
+          <span id="ammo-text">30</span>
+          <small id="ammo-reserve">/ 150</small>
+        </div>
+      </div>
+
+      <div id="reload-hint" class="hidden">RELOADING&hellip;</div>
+    </div>
+
+    <!-- Pause / Game over overlays -->
+    <div id="pause-overlay" class="overlay hidden">
+      <h2>Paused</h2>
+      <button id="resume-btn" class="primary" type="button">Resume</button>
+      <button id="quit-btn" class="ghost" type="button">Quit to Login</button>
+    </div>
+
+    <div id="gameover-overlay" class="overlay hidden">
+      <h2>You Died</h2>
+      <p>Score: <strong id="final-score">0</strong> &middot; Wave <strong id="final-wave">1</strong></p>
+      <p id="new-record" class="record hidden">★ New High Score! ★</p>
+      <button id="restart-btn" class="primary" type="button">Play Again</button>
+      <button id="menu-btn" class="ghost" type="button">Quit to Login</button>
+    </div>
+
+    <div id="crosshair"></div>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>

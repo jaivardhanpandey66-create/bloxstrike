@@ -1,0 +1,279 @@
+:root {
+  --bg: #05070d;
+  --panel: #0b0f1a;
+  --panel-2: #111726;
+  --line: #1d2740;
+  --text: #e7ecf7;
+  --muted: #8894ad;
+  --green: #50e678;
+  --cyan: #42e0ff;
+  --pink: #ff3cb0;
+  --red: #ff4d5e;
+  --yellow: #ffd24d;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
+  overflow: hidden;
+}
+
+.screen {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hidden { display: none !important; }
+
+/* ============================ Auth ============================ */
+#auth-screen {
+  background:
+    radial-gradient(1200px 600px at 20% -10%, rgba(66, 224, 255, 0.12), transparent 60%),
+    radial-gradient(1000px 500px at 90% 110%, rgba(255, 60, 176, 0.12), transparent 60%),
+    var(--bg);
+}
+
+.auth-card {
+  width: min(420px, 92vw);
+  background: linear-gradient(180deg, var(--panel), var(--panel-2));
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 32px 28px;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6),
+              0 0 0 1px rgba(66, 224, 255, 0.06) inset;
+}
+
+.logo {
+  margin: 0;
+  font-size: 40px;
+  letter-spacing: 2px;
+  font-weight: 800;
+  text-align: center;
+  color: var(--text);
+  text-shadow: 0 0 24px rgba(66, 224, 255, 0.35);
+}
+.logo span { color: var(--cyan); }
+
+.tagline {
+  text-align: center;
+  color: var(--muted);
+  font-size: 13px;
+  margin: 6px 0 22px;
+  letter-spacing: 0.5px;
+}
+
+.tabs {
+  display: flex;
+  gap: 6px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 4px;
+  margin-bottom: 18px;
+}
+.tab {
+  flex: 1;
+  padding: 10px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.15s;
+}
+.tab.active {
+  background: var(--panel-2);
+  color: var(--text);
+  box-shadow: 0 0 0 1px var(--line);
+}
+
+#auth-form { display: flex; flex-direction: column; gap: 14px; }
+#auth-form label { display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: var(--muted); }
+#auth-form input {
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 15px;
+  outline: none;
+  transition: 0.15s;
+}
+#auth-form input:focus {
+  border-color: var(--cyan);
+  box-shadow: 0 0 0 3px rgba(66, 224, 255, 0.12);
+}
+
+.primary {
+  margin-top: 6px;
+  padding: 13px;
+  border: 0;
+  border-radius: 10px;
+  background: linear-gradient(90deg, var(--cyan), #2f7bff);
+  color: #041018;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: 0.15s;
+}
+.primary:hover { filter: brightness(1.1); transform: translateY(-1px); }
+
+.msg { min-height: 18px; text-align: center; font-size: 13px; margin: 12px 0 0; }
+.msg.error { color: var(--red); }
+.msg.ok { color: var(--green); }
+
+.hint { text-align: center; color: var(--muted); font-size: 11px; margin-top: 16px; line-height: 1.5; }
+
+/* ============================ Game ============================ */
+#game-screen { background: #05070d; }
+#game { display: block; width: 100vw; height: 100vh; cursor: none; }
+
+#hud { position: fixed; inset: 0; pointer-events: none; font-size: 14px; }
+
+.hud-top {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  right: 14px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.hud-top > div {
+  background: rgba(11, 15, 26, 0.72);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 7px 12px;
+  font-size: 13px;
+  color: var(--muted);
+  backdrop-filter: blur(4px);
+}
+.hud-top strong { color: var(--text); }
+#logout-btn {
+  margin-left: auto;
+  pointer-events: auto;
+  background: rgba(255, 77, 94, 0.12);
+  border: 1px solid rgba(255, 77, 94, 0.4);
+  color: var(--red);
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+#logout-btn:hover { background: rgba(255, 77, 94, 0.22); }
+
+.hud-bottom {
+  position: absolute;
+  bottom: 22px;
+  left: 22px;
+  right: 22px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+}
+.health-bar {
+  position: relative;
+  width: 260px;
+  height: 30px;
+  background: rgba(11, 15, 26, 0.8);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+}
+#health-fill {
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(90deg, #2fbf5f, var(--green));
+  transition: width 0.12s linear, background 0.2s;
+}
+#health-text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
+}
+.ammo {
+  font-weight: 800;
+  color: var(--green);
+  text-shadow: 0 0 16px rgba(80, 230, 120, 0.5);
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+.ammo #ammo-text { font-size: 44px; line-height: 1; }
+.ammo small { color: var(--muted); font-size: 16px; }
+
+#reload-hint {
+  position: absolute;
+  top: 62%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: var(--yellow);
+  font-weight: 800;
+  letter-spacing: 2px;
+  font-size: 18px;
+  text-shadow: 0 0 16px rgba(255, 210, 77, 0.5);
+}
+
+#crosshair {
+  position: fixed;
+  width: 26px;
+  height: 26px;
+  margin: -13px 0 0 -13px;
+  pointer-events: none;
+  z-index: 20;
+}
+#crosshair::before,
+#crosshair::after {
+  content: "";
+  position: absolute;
+  background: var(--green);
+  box-shadow: 0 0 6px rgba(80, 230, 120, 0.8);
+}
+#crosshair::before { left: 12px; top: 0; width: 2px; height: 26px; }
+#crosshair::after  { top: 12px; left: 0; height: 2px; width: 26px; }
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(4, 6, 12, 0.82);
+  backdrop-filter: blur(6px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  z-index: 30;
+}
+.overlay h2 { font-size: 40px; margin: 0; letter-spacing: 1px; }
+.overlay p { color: var(--muted); margin: 0; font-size: 16px; }
+.overlay .primary, .overlay .ghost { pointer-events: auto; min-width: 220px; }
+.overlay .primary { margin-top: 0; }
+.record { color: var(--yellow) !important; font-weight: 800; }
+
+.ghost {
+  padding: 12px;
+  border-radius: 10px;
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.ghost:hover { background: rgba(255, 255, 255, 0.04); }

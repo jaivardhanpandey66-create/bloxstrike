@@ -1,0 +1,15 @@
+# Build artifacts
+*.rbxl
+*.rbxlx
+*.rbxl.lock
+*.rbxlx.lock
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Node (if you extend the web build)
+node_modules/
+package-lock.json
