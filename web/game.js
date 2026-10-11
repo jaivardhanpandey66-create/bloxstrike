@@ -41,11 +41,19 @@
       countGrowth: 1.6,
       breakTime: 2.2,
     },
+    obstacles: { count: 16 },
     colors: {
-      bg: "#05070d",
-      grid: "rgba(66,224,255,0.06)",
+      bg: "#070b14",
+      floor: "#0f172a",
+      floorEdge: "#1b2b4d",
+      grid: "rgba(66,224,255,0.10)",
+      gridMajor: "rgba(66,224,255,0.22)",
       wall: "#141b2c",
       wallEdge: "#42e0ff",
+      wallEdge2: "#ff3cb0",
+      obstacle: "#141d33",
+      obstacleTop: "#243a63",
+      obstacleEdge: "#3d5ea8",
       enemy: "#ff4d5e",
       enemyEye: "#ffd24d",
       bullet: "#8affc1",
@@ -184,7 +192,6 @@
     gameScreen.classList.remove("hidden");
     $("hud-user").textContent = user.name;
     $("hud-best").textContent = Auth.best(user.name);
-    hideOverlays();
     resize();
     Game.start();
   }
@@ -267,6 +274,7 @@
       particles: [],
       pickups: [],
       damageTexts: [],
+      obstacles: [],
       score: 0,
       wave: 0,
       waveTimer: 0,
@@ -278,6 +286,75 @@
     // ---- helpers ----
     const rand = (a, b) => a + Math.random() * (b - a);
     const dist2 = (ax, ay, bx, by) => (ax - bx) ** 2 + (ay - by) ** 2;
+
+    function generateObstacles() {
+      const list = [];
+      const w = CONFIG.world.w;
+      const h = CONFIG.world.h;
+      const cx = w / 2;
+      const cy = h / 2;
+      let attempts = 0;
+      while (list.length < CONFIG.obstacles.count && attempts < 600) {
+        attempts++;
+        const ow = rand(100, 260);
+        const oh = rand(100, 260);
+        const x = rand(150, w - 150 - ow);
+        const y = rand(150, h - 150 - oh);
+        // keep the player spawn area clear
+        if (x < cx + 220 && x + ow > cx - 220 && y < cy + 220 && y + oh > cy - 220) continue;
+        let overlap = false;
+        for (const o of list) {
+          if (x < o.x + o.w + 70 && x + ow + 70 > o.x && y < o.y + o.h + 70 && y + oh + 70 > o.y) {
+            overlap = true;
+            break;
+          }
+        }
+        if (!overlap) list.push({ x, y, w: ow, h: oh });
+      }
+      return list;
+    }
+
+    function resolveCircleRect(cx, cy, r, rect) {
+      const nx = Math.max(rect.x, Math.min(cx, rect.x + rect.w));
+      const ny = Math.max(rect.y, Math.min(cy, rect.y + rect.h));
+      const dx = cx - nx;
+      const dy = cy - ny;
+      const d2 = dx * dx + dy * dy;
+      if (d2 < r * r) {
+        const d = Math.sqrt(d2);
+        if (d > 0.001) {
+          const push = r - d;
+          return { x: cx + (dx / d) * push, y: cy + (dy / d) * push };
+        }
+        // center is inside the rect: eject along the nearest edge
+        const left = cx - rect.x;
+        const right = rect.x + rect.w - cx;
+        const top = cy - rect.y;
+        const bottom = rect.y + rect.h - cy;
+        const m = Math.min(left, right, top, bottom);
+        if (m === left) return { x: rect.x - r, y: cy };
+        if (m === right) return { x: rect.x + rect.w + r, y: cy };
+        if (m === top) return { x: cx, y: rect.y - r };
+        return { x: cx, y: rect.y + rect.h + r };
+      }
+      return { x: cx, y: cy };
+    }
+
+    function resolveObstacles(cx, cy, r) {
+      for (const o of state.obstacles) {
+        const res = resolveCircleRect(cx, cy, r, o);
+        cx = res.x;
+        cy = res.y;
+      }
+      return { x: cx, y: cy };
+    }
+
+    function pointInObstacle(x, y) {
+      for (const o of state.obstacles) {
+        if (x > o.x && x < o.x + o.w && y > o.y && y < o.y + o.h) return true;
+      }
+      return false;
+    }
 
     function newPlayer() {
       return {
@@ -298,6 +375,7 @@
     }
 
     function reset() {
+      state.obstacles = generateObstacles();
       state.player = newPlayer();
       state.bullets = [];
       state.enemies = [];
@@ -452,6 +530,9 @@
       const wallPad = 40;
       p.x = Math.max(wallPad, Math.min(CONFIG.world.w - wallPad, p.x));
       p.y = Math.max(wallPad, Math.min(CONFIG.world.h - wallPad, p.y));
+      const resolved = resolveObstacles(p.x, p.y, p.r);
+      p.x = resolved.x;
+      p.y = resolved.y;
 
       // timers
       if (p.fireT > 0) p.fireT -= dt;
@@ -477,6 +558,11 @@
 
         let dead = b.life <= 0 || b.x < 0 || b.y < 0 ||
           b.x > CONFIG.world.w || b.y > CONFIG.world.h;
+
+        if (!dead && pointInObstacle(b.x, b.y)) {
+          burst(b.x, b.y, "#9fb6ff", 4, 120);
+          dead = true;
+        }
 
         if (!dead) {
           for (const e of state.enemies) {
@@ -515,6 +601,9 @@
         if (d > touch - 2) {
           e.x += Math.cos(ang) * e.speed * dt;
           e.y += Math.sin(ang) * e.speed * dt;
+          const er = resolveObstacles(e.x, e.y, e.r);
+          e.x = Math.max(20, Math.min(CONFIG.world.w - 20, er.x));
+          e.y = Math.max(20, Math.min(CONFIG.world.h - 20, er.y));
         }
         if (e.attackT > 0) e.attackT -= dt;
         if (d <= touch + 4 && e.attackT <= 0) {
@@ -615,7 +704,9 @@
       ctx.fillRect(0, 0, view.w, view.h);
       ctx.translate(-cam.x + ox, -cam.y + oy);
 
+      drawFloor(cam);
       drawGrid(cam);
+      drawObstacles();
       drawWalls();
 
       // pickups
@@ -682,12 +773,35 @@
       ctx.restore();
     }
 
+    function roundRectPath(x, y, w, h, r) {
+      r = Math.min(r, w / 2, h / 2);
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.arcTo(x + w, y, x + w, y + h, r);
+      ctx.arcTo(x + w, y + h, x, y + h, r);
+      ctx.arcTo(x, y + h, x, y, r);
+      ctx.arcTo(x, y, x + w, y, r);
+      ctx.closePath();
+    }
+
+    function drawFloor(cam) {
+      ctx.fillStyle = CONFIG.colors.floor;
+      ctx.fillRect(0, 0, CONFIG.world.w, CONFIG.world.h);
+      // soft vignette-ish edge glow at the arena border
+      ctx.save();
+      ctx.strokeStyle = "rgba(66,224,255,0.10)";
+      ctx.lineWidth = 60;
+      ctx.strokeRect(30, 30, CONFIG.world.w - 60, CONFIG.world.h - 60);
+      ctx.restore();
+    }
+
     function drawGrid(cam) {
       const step = 64;
-      ctx.strokeStyle = CONFIG.colors.grid;
-      ctx.lineWidth = 1;
       const x0 = Math.floor(cam.x / step) * step;
       const y0 = Math.floor(cam.y / step) * step;
+
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = CONFIG.colors.grid;
       ctx.beginPath();
       for (let x = x0; x < cam.x + view.w + step; x += step) {
         ctx.moveTo(x, cam.y);
@@ -698,15 +812,84 @@
         ctx.lineTo(cam.x + view.w, y);
       }
       ctx.stroke();
+
+      // brighter major lines every 4 cells
+      const major = step * 4;
+      const mx0 = Math.floor(cam.x / major) * major;
+      const my0 = Math.floor(cam.y / major) * major;
+      ctx.strokeStyle = CONFIG.colors.gridMajor;
+      ctx.beginPath();
+      for (let x = mx0; x < cam.x + view.w + major; x += major) {
+        ctx.moveTo(x, cam.y);
+        ctx.lineTo(x, cam.y + view.h);
+      }
+      for (let y = my0; y < cam.y + view.h + major; y += major) {
+        ctx.moveTo(cam.x, y);
+        ctx.lineTo(cam.x + view.w, y);
+      }
+      ctx.stroke();
+    }
+
+    function drawObstacles() {
+      for (const o of state.obstacles) {
+        // drop shadow
+        ctx.save();
+        ctx.fillStyle = "rgba(0,0,0,0.45)";
+        ctx.filter = "blur(6px)";
+        roundRectPath(o.x + 6, o.y + 10, o.w, o.h, 10);
+        ctx.fill();
+        ctx.restore();
+
+        // body
+        ctx.fillStyle = CONFIG.colors.obstacle;
+        roundRectPath(o.x, o.y, o.w, o.h, 10);
+        ctx.fill();
+
+        // top face highlight
+        ctx.fillStyle = CONFIG.colors.obstacleTop;
+        roundRectPath(o.x, o.y, o.w, 12, 8);
+        ctx.fill();
+
+        // neon edge
+        ctx.strokeStyle = CONFIG.colors.obstacleEdge;
+        ctx.lineWidth = 2;
+        roundRectPath(o.x, o.y, o.w, o.h, 10);
+        ctx.stroke();
+      }
     }
 
     function drawWalls() {
-      ctx.strokeStyle = CONFIG.colors.wallEdge;
-      ctx.lineWidth = 6;
+      ctx.save();
       ctx.shadowColor = CONFIG.colors.wallEdge;
-      ctx.shadowBlur = 20;
-      ctx.strokeRect(3, 3, CONFIG.world.w - 6, CONFIG.world.h - 6);
-      ctx.shadowBlur = 0;
+      ctx.shadowBlur = 24;
+      ctx.strokeStyle = CONFIG.colors.wallEdge;
+      ctx.lineWidth = 8;
+      ctx.strokeRect(4, 4, CONFIG.world.w - 8, CONFIG.world.h - 8);
+      ctx.restore();
+
+      // corner accents in the secondary accent color
+      ctx.save();
+      ctx.strokeStyle = CONFIG.colors.wallEdge2;
+      ctx.lineWidth = 8;
+      ctx.shadowColor = CONFIG.colors.wallEdge2;
+      ctx.shadowBlur = 24;
+      const c = 120;
+      const w = CONFIG.world.w;
+      const h = CONFIG.world.h;
+      const corners = [
+        [4, 4, 1, 1],
+        [w - 4, 4, -1, 1],
+        [4, h - 4, 1, -1],
+        [w - 4, h - 4, -1, -1],
+      ];
+      for (const [x, y, sx, sy] of corners) {
+        ctx.beginPath();
+        ctx.moveTo(x + c * sx, y);
+        ctx.lineTo(x, y);
+        ctx.lineTo(x, y + c * sy);
+        ctx.stroke();
+      }
+      ctx.restore();
     }
 
     function drawPlayer() {
@@ -715,9 +898,9 @@
       ctx.translate(p.x, p.y);
       ctx.rotate(p.angle);
       // body
-      ctx.shadowColor = CONFIG.colors.player.color;
+      ctx.shadowColor = CONFIG.player.color;
       ctx.shadowBlur = 22;
-      ctx.fillStyle = p.hitFlash > 0 ? "#ffffff" : CONFIG.colors.player.color;
+      ctx.fillStyle = p.hitFlash > 0 ? "#ffffff" : CONFIG.player.color;
       ctx.beginPath();
       ctx.arc(0, 0, p.r, 0, Math.PI * 2);
       ctx.fill();
